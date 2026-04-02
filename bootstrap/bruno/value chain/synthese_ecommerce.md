@@ -1,6 +1,7 @@
 # Modélisation du Parcours E-Commerce
 
-Ce document regroupe le diagramme du parcours client généré via Mermaid, ainsi que les données complètes des parties prenantes (Stakeholders) et des points de friction (Pain Points) sous forme de tableaux Markdown. 
+Ce document regroupe le diagramme du parcours client généré via Mermaid, ainsi que les données complètes des parties prenantes (Stakeholders) et des points de friction (Pain Points) sous forme de tableaux Markdown. Ce format est idéal pour être poussé (push) directement sur GitHub ou GitLab.
+
 ---
 
 ## 1. Diagramme de Flux (Customer Journey)
