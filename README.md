@@ -3,9 +3,10 @@
 NutriBot est un assistant nutrition IA pour la grande distribution française.  
 Il analyse des produits alimentaires via Open Food Facts et répond aux questions nutritionnelles via un LLM local (LMStudio).
 
-Deux interfaces sont disponibles :
+Trois interfaces sont disponibles :
 - Un **bot Telegram** (`bot.py`)
 - Une **interface web** avec une API Flask (`app.py` + `site/index_1.html`)
+- Une **page de présentation** accessible sur `/landing` (`site/landing.html`)
 
 ---
 
@@ -46,7 +47,8 @@ python bot.py
 ```bash
 python app.py
 ```
-Accessible sur `http://localhost:8080`
+Accessible sur `http://localhost:8080`  
+Page de présentation : `http://localhost:8080/landing`
 
 ---
 
@@ -79,7 +81,8 @@ Accessible sur `http://localhost:8080`
 │   ├── bot.py           # Bot Telegram
 │   └── requirements.txt
 ├── site/
-│   └── index_1.html     # Frontend web
+│   ├── index_1.html     # Frontend web (chat)
+│   └── landing.html     # Page de présentation du projet
 └── bootstrap/
     └── bruno/           # Analyse de la chaîne de valeur
 ```
