@@ -50,7 +50,85 @@ STRUCTURE DE RÉPONSE — COMPARAISON :
 _Ces informations sont fournies à titre indicatif._"""
 
 
-
+NUTRISCORE_EMOJI = {"a": "🟢 A", "b": "🟡 B", "c": "🟠 C", "d": "🔴 D", "e": "⚫ E"}                                  
+  ADDITIVE_RISK = {                                                                                                     
+      "en:e102": "⚠️  Tartrazine", "en:e211": "⚠️  Benzoate de sodium",                                                   
+      "en:e250": "⚠️  Nitrite de sodium", "en:e621": "⚠️  Glutamate (MSG)",                                               
+      "en:e951": "⚠️  Aspartame", "en:e330": "✅ Acide citrique", "en:e322": "✅ Lécithine",                             
+  }                                                                                                                     
+  COMPARISON_KEYWORDS = [                                                                                               
+      r"entre\b", r"vs\b", r"versus\b", r"comparer?\b", r"comparaison",                                                 
+      r"lequel", r"laquelle", r"quel.*meilleur", r"j.hésite", r"différence",                                            
+  ]                                                                                                                     
+                                                                                                                        
+  def is_comparison_query(text):                                                                                        
+      return any(re.search(kw, text.lower()) for kw in COMPARISON_KEYWORDS)
+                                                                                                                        
+  def extract_products_from_message(text):                                                                              
+      match = re.search(r"entre\s+(.+?)\s+(?:et|ou|vs|versus)\s+(.+?)(?:\s*\?.*)?$", text, re.IGNORECASE)
+      if match:                                                                                                         
+          return [match.group(1).strip(), match.group(2).strip()]
+      parts = re.split(r"\s+(?:et|ou|vs|versus)\s+", text, flags=re.IGNORECASE)                                         
+      if len(parts) >= 2:                                                                                               
+          return [p.strip() for p in parts[:2] if len(p.strip()) > 3]
+      return []                                                                                                         
+                  
+  def search_products(query, max_results=2, worldwide=False):                                                           
+      try:        
+          params = {                                                                                                    
+              "search_terms": query, "search_simple": 1, "action": "process",
+              "json": 1, "page_size": max_results,                                                                      
+              "fields":                                                                                                 
+  "product_name,brands,nutriscore_grade,nova_group,nutriments,additives_tags,quantity,labels_tags",                     
+          }                                                                                                             
+          if not worldwide:                                                                                             
+              params["lc"] = "fr"                                                                                       
+          r = requests.get(f"{OFF_BASE_URL}/cgi/search.pl", params=params, headers=OFF_HEADERS, timeout=10)
+          r.raise_for_status()                                                                                          
+          return [p for p in r.json().get("products", [])[:max_results] if p.get("product_name")]                       
+      except Exception as e:                                                                                            
+          logger.error(f"OFF error: {e}")                                                                               
+          return []                                                                                                     
+                  
+  def format_product(product):
+      if not product:
+          return ""                                                                                                     
+      name  = product.get("product_name") or "Nom inconnu"
+      brand = product.get("brands") or "Marque inconnue"                                                                
+      ns    = NUTRISCORE_EMOJI.get((product.get("nutriscore_grade") or "").lower(), "❓")                               
+      nova  = product.get("nova_group") or "N/A"
+      n     = product.get("nutriments", {})                                                                             
+      bio   = "🌿 BIO" if any("organic" in l or "bio" in l for l in product.get("labels_tags", [])) else ""
+      adds  = product.get("additives_tags", [])                                                                         
+      adds_str = ", ".join(
+          f"{a.replace('en:','').upper()} {ADDITIVE_RISK.get(a,'')}".strip() for a in adds[:5]                          
+      ) if adds else "Aucun additif ✅"                                                                                 
+      return (                                                                                                          
+          f"Produit : {name} ({brand}) {bio}\n"                                                                         
+          f"Nutri-Score : {ns} | NOVA : {nova}/4\n"                                                                     
+          f"Calories : {n.get('energy-kcal_100g','N/A')} kcal/100g | "
+          f"Protéines : {n.get('proteins_100g','N/A')}g | "                                                             
+          f"Glucides : {n.get('carbohydrates_100g','N/A')}g | "
+          f"Lipides : {n.get('fat_100g','N/A')}g | Sel : {n.get('salt_100g','N/A')}g\n"                                 
+          f"Additifs : {adds_str}"                                                                                      
+      )                                                                                                                 
+                                                                                                                        
+  def get_off_context_single(query):                                                                                    
+      products = search_products(query, max_results=2)
+      if not products:                                                                                                  
+          products = search_products(query, max_results=2, worldwide=True)
+      parts = [format_product(p) for p in products if p.get("product_name")]                                            
+      return "\n---\n".join(parts) if parts else ""                                                                     
+                                                                                                                        
+  def get_off_context_comparison(a, b):                                                                                 
+      ctx_a = get_off_context_single(a)
+      ctx_b = get_off_context_single(b)                                                                                 
+      result = ""
+      if ctx_a:                                                                                                         
+          result += f"=== {a} ===\n{ctx_a}\n\n"
+      if ctx_b:                                                                                                         
+          result += f"=== {b} ===\n{ctx_b}"
+      return result.strip()
 
 def ask_lmstudio(user_input, history, off_context=""):
     try:
