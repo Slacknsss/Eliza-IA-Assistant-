@@ -51,20 +51,20 @@ _Ces informations sont fournies à titre indicatif._"""
 
 
 NUTRISCORE_EMOJI = {"a": "🟢 A", "b": "🟡 B", "c": "🟠 C", "d": "🔴 D", "e": "⚫ E"}                                  
-  ADDITIVE_RISK = {                                                                                                     
+ADDITIVE_RISK = {                                                                                                     
       "en:e102": "⚠️  Tartrazine", "en:e211": "⚠️  Benzoate de sodium",                                                   
       "en:e250": "⚠️  Nitrite de sodium", "en:e621": "⚠️  Glutamate (MSG)",                                               
       "en:e951": "⚠️  Aspartame", "en:e330": "✅ Acide citrique", "en:e322": "✅ Lécithine",                             
   }                                                                                                                     
-  COMPARISON_KEYWORDS = [                                                                                               
+COMPARISON_KEYWORDS = [                                                                                               
       r"entre\b", r"vs\b", r"versus\b", r"comparer?\b", r"comparaison",                                                 
       r"lequel", r"laquelle", r"quel.*meilleur", r"j.hésite", r"différence",                                            
   ]                                                                                                                     
                                                                                                                         
-  def is_comparison_query(text):                                                                                        
+def is_comparison_query(text):                                                                                        
       return any(re.search(kw, text.lower()) for kw in COMPARISON_KEYWORDS)
                                                                                                                         
-  def extract_products_from_message(text):                                                                              
+def extract_products_from_message(text):                                                                              
       match = re.search(r"entre\s+(.+?)\s+(?:et|ou|vs|versus)\s+(.+?)(?:\s*\?.*)?$", text, re.IGNORECASE)
       if match:                                                                                                         
           return [match.group(1).strip(), match.group(2).strip()]
@@ -73,7 +73,7 @@ NUTRISCORE_EMOJI = {"a": "🟢 A", "b": "🟡 B", "c": "🟠 C", "d": "🔴 D", 
           return [p.strip() for p in parts[:2] if len(p.strip()) > 3]
       return []                                                                                                         
                   
-  def search_products(query, max_results=2, worldwide=False):                                                           
+def search_products(query, max_results=2, worldwide=False):                                                           
       try:        
           params = {                                                                                                    
               "search_terms": query, "search_simple": 1, "action": "process",
@@ -90,7 +90,7 @@ NUTRISCORE_EMOJI = {"a": "🟢 A", "b": "🟡 B", "c": "🟠 C", "d": "🔴 D", 
           logger.error(f"OFF error: {e}")                                                                               
           return []                                                                                                     
                   
-  def format_product(product):
+def format_product(product):
       if not product:
           return ""                                                                                                     
       name  = product.get("product_name") or "Nom inconnu"
@@ -113,14 +113,14 @@ NUTRISCORE_EMOJI = {"a": "🟢 A", "b": "🟡 B", "c": "🟠 C", "d": "🔴 D", 
           f"Additifs : {adds_str}"                                                                                      
       )                                                                                                                 
                                                                                                                         
-  def get_off_context_single(query):                                                                                    
+def get_off_context_single(query):                                                                                    
       products = search_products(query, max_results=2)
       if not products:                                                                                                  
           products = search_products(query, max_results=2, worldwide=True)
       parts = [format_product(p) for p in products if p.get("product_name")]                                            
       return "\n---\n".join(parts) if parts else ""                                                                     
                                                                                                                         
-  def get_off_context_comparison(a, b):                                                                                 
+def get_off_context_comparison(a, b):                                                                                 
       ctx_a = get_off_context_single(a)
       ctx_b = get_off_context_single(b)                                                                                 
       result = ""
