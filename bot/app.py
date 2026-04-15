@@ -36,6 +36,7 @@ TU ANALYSES VIA :
 
 STRUCTURE DE RÉPONSE — ANALYSE SEULE :
 *[Nom du produit]* — [Nutri-Score] | NOVA [X]/4
+🔢 Macros /100g : [X] kcal | Protéines [X]g | Glucides [X]g | Lipides [X]g | Sel [X]g
 • ✅ [Point fort]
 • ⚠️ [Point faible]
 • Score : X/10
@@ -44,10 +45,15 @@ _Ces informations sont fournies à titre indicatif._
 
 STRUCTURE DE RÉPONSE — COMPARAISON :
 🏆 *[Produit gagnant]* — meilleur choix. [Raison en 1 phrase.]
-*[Produit 1]* • ✅ ... • ⚠️ ... • Score : X/10
-*[Produit 2]* • ✅ ... • ⚠️ ... • Score : X/10
+*[Produit 1]* 🔢 [X] kcal | Protéines [X]g | Glucides [X]g | Lipides [X]g • ✅ ... • ⚠️ ... • Score : X/10
+*[Produit 2]* 🔢 [X] kcal | Protéines [X]g | Glucides [X]g | Lipides [X]g • ✅ ... • ⚠️ ... • Score : X/10
 📌 [Recommandation courte.]
-_Ces informations sont fournies à titre indicatif._"""
+_Ces informations sont fournies à titre indicatif._
+
+RÈGLE ABSOLUE : La ligne 🔢 Macros est OBLIGATOIRE dans chaque réponse.
+Recopie exactement les chiffres fournis dans les données Open Food Facts (Calories, Protéines, Glucides, Lipides, Sel).
+Si une valeur est manquante, écris "N/A". Ne jamais inventer de chiffres."""
+
 
 
 NUTRISCORE_EMOJI = {"a": "🟢 A", "b": "🟡 B", "c": "🟠 C", "d": "🔴 D", "e": "⚫ E"}                                  
@@ -97,20 +103,32 @@ def format_product(product):
       brand = product.get("brands") or "Marque inconnue"                                                                
       ns    = NUTRISCORE_EMOJI.get((product.get("nutriscore_grade") or "").lower(), "❓")                               
       nova  = product.get("nova_group") or "N/A"
-      n     = product.get("nutriments", {})                                                                             
+      n     = product.get("nutriments", {})
       bio   = "🌿 BIO" if any("organic" in l or "bio" in l for l in product.get("labels_tags", [])) else ""
-      adds  = product.get("additives_tags", [])                                                                         
+      adds  = product.get("additives_tags", [])
       adds_str = ", ".join(
-          f"{a.replace('en:','').upper()} {ADDITIVE_RISK.get(a,'')}".strip() for a in adds[:5]                          
-      ) if adds else "Aucun additif ✅"                                                                                 
-      return (                                                                                                          
-          f"Produit : {name} ({brand}) {bio}\n"                                                                         
-          f"Nutri-Score : {ns} | NOVA : {nova}/4\n"                                                                     
-          f"Calories : {n.get('energy-kcal_100g','N/A')} kcal/100g | "
-          f"Protéines : {n.get('proteins_100g','N/A')}g | "                                                             
-          f"Glucides : {n.get('carbohydrates_100g','N/A')}g | "
-          f"Lipides : {n.get('fat_100g','N/A')}g | Sel : {n.get('salt_100g','N/A')}g\n"                                 
-          f"Additifs : {adds_str}"                                                                                      
+          f"{a.replace('en:','').upper()} {ADDITIVE_RISK.get(a,'')}".strip() for a in adds[:5]
+      ) if adds else "Aucun additif ✅"
+
+      # Calories : priorité kcal direct, sinon conversion depuis kJ
+      kcal_val = n.get("energy-kcal_100g")
+      if kcal_val is None:
+          kj_val = n.get("energy_100g")
+          kcal_val = round(kj_val / 4.184) if kj_val is not None else "N/A"
+
+      proteins  = n.get("proteins_100g",       "N/A")
+      carbs     = n.get("carbohydrates_100g",   "N/A")
+      fat       = n.get("fat_100g",             "N/A")
+      salt      = n.get("salt_100g",            "N/A")
+
+      return (
+          f"Produit : {name} ({brand}) {bio}\n"
+          f"Nutri-Score : {ns} | NOVA : {nova}/4\n"
+          f"Calories : {kcal_val} kcal/100g | "
+          f"Protéines : {proteins}g | "
+          f"Glucides : {carbs}g | "
+          f"Lipides : {fat}g | Sel : {salt}g\n"
+          f"Additifs : {adds_str}"
       )                                                                                                                 
                                                                                                                         
 def get_off_context_single(query):                                                                                    
@@ -138,7 +156,11 @@ def ask_lmstudio(user_input, history, off_context=""):
         messages.extend(history[-10:])
         full_input = user_input
         if off_context:
-            full_input += f"\n\n[📦 Données Open Food Facts :]\n{off_context}"
+            full_input += (
+                f"\n\n[📦 DONNÉES OPEN FOOD FACTS — UTILISE CES CHIFFRES EXACTEMENT DANS TA RÉPONSE :]\n"
+                f"{off_context}\n"
+                f"[FIN DES DONNÉES — Inclure obligatoirement la ligne 🔢 Macros avec ces valeurs.]"
+            )
         messages.append({"role": "user", "content": full_input})
         response = client.chat.completions.create(
             model="llama-3.2-3b-instruct", messages=messages, temperature=0.6, max_tokens=800
@@ -174,6 +196,9 @@ def chat():
 
     if not reply:
         reply = "⚠️ LMStudio est hors ligne. Lance LMStudio > Local Server > Start Server (port 1234)."
+
+    if off_context:
+        reply += f"\n\n---\n📦 Données Open Food Facts :\n{off_context}"
 
     return jsonify({"reply": reply})
 
