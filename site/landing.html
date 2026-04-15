@@ -158,45 +158,6 @@
       text-align: center;
     }
 
-    .video-placeholder {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      width: 100%;
-      max-width: 700px;
-      aspect-ratio: 16/9;
-      margin: 0 auto 20px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: border-color 0.2s;
-    }
-    .video-placeholder:hover { border-color: var(--blue); }
-
-    .play-btn {
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-      background: var(--blue);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 16px;
-    }
-
-    .play-btn svg {
-      width: 22px;
-      height: 22px;
-      fill: #fff;
-      margin-left: 4px;
-    }
-
-    .video-placeholder p {
-      color: var(--muted);
-      font-size: 0.9rem;
-    }
 
 
     .pricing-grid {
@@ -373,6 +334,7 @@
     <div class="section-title fade">Demo en direct</div>
       <video controls width="100%" style="border-radius: 10px; max-width: 700px; display: block; margin: 0 auto;" class="fade">
         <source src="demo.mp4" type="video/mp4">
+        Votre navigateur ne supporte pas la lecture de vidéos HTML5.
       </video>
   </section>
 
