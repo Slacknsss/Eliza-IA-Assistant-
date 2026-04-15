@@ -110,7 +110,7 @@ def format_product(product):
           f"{a.replace('en:','').upper()} {ADDITIVE_RISK.get(a,'')}".strip() for a in adds[:5]
       ) if adds else "Aucun additif ✅"
 
-      # Calories : priorité kcal direct, sinon conversion depuis kJ
+   
       kcal_val = n.get("energy-kcal_100g")
       if kcal_val is None:
           kj_val = n.get("energy_100g")
@@ -171,7 +171,6 @@ def ask_lmstudio(user_input, history, off_context=""):
         return None
 
 
-# ─── Route principale ──────────────────────────────────────────────────────────
 
 @app.route("/api/chat", methods=["POST"])
 def chat():
@@ -182,7 +181,7 @@ def chat():
     if not message:
         return jsonify({"reply": "Message vide."}), 400
 
-    # Récupère le contexte Open Food Facts
+   
     if is_comparison_query(message):
         products = extract_products_from_message(message)
         if len(products) >= 2:
