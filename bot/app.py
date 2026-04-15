@@ -197,8 +197,7 @@ def chat():
     if not reply:
         reply = "⚠️ LMStudio est hors ligne. Lance LMStudio > Local Server > Start Server (port 1234)."
 
-    if off_context:
-        reply += f"\n\n---\n📦 Données Open Food Facts :\n{off_context}"
+    
 
     return jsonify({"reply": reply})
 
