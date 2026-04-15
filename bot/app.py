@@ -116,10 +116,10 @@ def format_product(product):
           kj_val = n.get("energy_100g")
           kcal_val = round(kj_val / 4.184) if kj_val is not None else "N/A"
 
-      proteins  = n.get("proteins_100g",       "N/A")
-      carbs     = n.get("carbohydrates_100g",   "N/A")
-      fat       = n.get("fat_100g",             "N/A")
-      salt      = n.get("salt_100g",            "N/A")
+      proteins  = round(n["proteins_100g"],       1) if n.get("proteins_100g")       is not None else "N/A"
+      carbs     = round(n["carbohydrates_100g"], 1) if n.get("carbohydrates_100g")   is not None else "N/A"
+      fat       = round(n["fat_100g"],           1) if n.get("fat_100g")             is not None else "N/A"
+      salt      = round(n["salt_100g"],          2) if n.get("salt_100g")            is not None else "N/A"
 
       return (
           f"Produit : {name} ({brand}) {bio}\n"
@@ -188,9 +188,9 @@ def chat():
         if len(products) >= 2:
             off_context = get_off_context_comparison(products[0], products[1])
         else:
-            off_context = get_off_context_single(message[:80])
+            off_context = get_off_context_single(message[:80].strip())
     else:
-        off_context = get_off_context_single(message[:80])
+        off_context = get_off_context_single(message[:80].strip())
 
     reply = ask_lmstudio(message, history, off_context)
 
