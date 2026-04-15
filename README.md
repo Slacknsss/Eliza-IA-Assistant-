@@ -92,3 +92,9 @@ Page de présentation : `http://localhost:8080/landing`
 ## Données
 
 Les données nutritionnelles proviennent de [Open Food Facts](https://world.openfoodfacts.org), base de données ouverte et collaborative.
+
+---
+
+## Licence
+
+Projet réalisé dans le cadre du module B-AIA-210 — Epitech Paris.
