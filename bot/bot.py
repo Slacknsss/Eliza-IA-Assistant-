@@ -116,12 +116,6 @@ COMPARISON_KEYWORDS = [
     r"j.hésite", r"j.hesite", r"différence", r"difference",
 ]
 
-FRENCH_SUPERMARKETS = [
-    "super u", "super-u", "carrefour", "lidl", "leclerc", "e.leclerc",
-    "intermarché", "intermarche", "aldi", "monoprix", "casino", "franprix",
-    "simply market", "cora", "match", "biocoop", "naturalia",
-]
-
 logging.basicConfig(
     format="%(asctime)s | %(levelname)s | %(message)s",
     level=logging.INFO,
@@ -134,131 +128,19 @@ def is_comparison_query(text: str) -> bool:
     return any(re.search(kw, text_lower) for kw in COMPARISON_KEYWORDS)
 
 
-def extract_supermarket(text: str) -> str | None:
-    text_lower = text.lower()
-    for market in FRENCH_SUPERMARKETS:
-        if market in text_lower:
-            return market.title()
-    return None
-
-
 def extract_products_from_message(text: str) -> list[str]:
-    cleaned = text
-    for market in FRENCH_SUPERMARKETS:
-        cleaned = re.sub(re.escape(market), "", cleaned, flags=re.IGNORECASE)
-
     match = re.search(
         r"entre\s+(.+?)\s+(?:et|ou|vs|versus)\s+(.+?)(?:\s*\?.*)?$",
-        cleaned, re.IGNORECASE
+        text, re.IGNORECASE
     )
     if match:
         return [match.group(1).strip(), match.group(2).strip()]
 
-    parts = re.split(r"\s+(?:et|ou|vs|versus)\s+", cleaned, flags=re.IGNORECASE)
+    parts = re.split(r"\s+(?:et|ou|vs|versus)\s+", text, flags=re.IGNORECASE)
     if len(parts) >= 2:
         return [p.strip().strip("\"'") for p in parts[:2] if len(p.strip()) > 3]
 
     return []
-
-
-def normalize_query(query: str) -> str:
-    """
-    Nettoie une requête utilisateur :
-    - Remplace tirets spéciaux par des espaces
-    - Supprime les quantités (500g, 1L, etc.)
-    - Normalise les espaces
-    - Met en minuscules
-    """
-    query = query.replace("–", " ").replace("—", " ").replace("-", " ")
-    query = re.sub(r"\b\d+\s*(?:ml|cl|l|g|kg|gr|litre|litres|L)\b", "", query, flags=re.IGNORECASE)
-    query = re.sub(r"\s{2,}", " ", query).strip()
-    return query.lower()
-
-
-ABBREVIATIONS = {
-    "fb":    "fromage blanc",
-    "pt":    "petit filous",
-    "yaourt": "yaourt",
-    "yog":   "yaourt",
-    "cc":    "crème caramel",
-    "lc":    "la laitière",
-    "pj":    "pur jus",
-    "jus oc": "jus orange carrefour",
-    "choco": "chocolat",
-    "choc":  "chocolat",
-    "bf":    "beurre de cacahuètes",
-    "pb":    "peanut butter",
-    "ww":    "weight watchers",
-    "mdd":   "marque de distributeur",
-    "bio":   "biologique",
-    "lait ec": "lait écrémé",
-    "s. entier": "lait entier",
-    "jambfc":  "jambon blanc",
-    "st moret": "saint moret",
-    "fjm":   "fjord",
-    "activia": "activia danone",
-    "prince": "prince lu",
-    "pim":   "pim's",
-    "bn":    "bn biscuit",
-    "kiri":  "kiri fromage",
-    "vach":  "vache qui rit",
-    "vqr":   "vache qui rit",
-    "miel pop": "honey pops",
-    "choco pops": "choco pops kelloggs",
-    "frosties": "frosties kelloggs",
-    "spéci": "spécial k",
-    "speck": "spécial k",
-    "sk":    "special k",
-    "nutella": "nutella ferrero",
-    "noc":   "nocilla",
-    "lo":    "light",
-    "0%":    "0% matière grasse",
-    "mg":    "matière grasse",
-}
-
-
-def expand_abbreviations(query: str) -> str:
-    """Remplace les abréviations connues par leur forme longue."""
-    q = query.lower().strip()
-   
-    for abbr, expansion in sorted(ABBREVIATIONS.items(), key=lambda x: -len(x[0])):
-        pattern = r"\b" + re.escape(abbr) + r"\b"
-        q = re.sub(pattern, expansion, q, flags=re.IGNORECASE)
-    return q
-
-
-def build_query_variants(raw: str) -> list[str]:
-    """
-    Génère plusieurs variantes de la requête, du plus précis au plus large :
-    1. Requête originale normalisée
-    2. Avec expansion des abréviations
-    3. Troncature 3 mots, 2 mots
-    4. Chaque mot seul
-    Permet de trouver même si l'utilisateur abrège ou écrit différemment.
-    """
-    cleaned = normalize_query(raw)
-    expanded = expand_abbreviations(cleaned)
-
-    variants = []
-
-    for base in [cleaned, expanded]:
-        words = [w for w in base.split() if len(w) > 2]
-        variants.append(base)
-        if len(words) > 3:
-            variants.append(" ".join(words[:4]))
-        if len(words) > 2:
-            variants.append(" ".join(words[:3]))
-        if len(words) > 1:
-            variants.append(" ".join(words[:2]))
-        for word in words:
-            variants.append(word)
-
-    seen = []
-    for v in variants:
-        v = v.strip()
-        if v and v not in seen:
-            seen.append(v)
-    return seen
 
 
 def search_products(query: str, max_results: int = 2, worldwide: bool = False, fuzzy: bool = False) -> list:
@@ -290,60 +172,6 @@ def search_products(query: str, max_results: int = 2, worldwide: bool = False, f
     except Exception as e:
         logger.error(f"OpenFoodFacts error: {e}")
         return []
-
-
-def smart_search(raw_query: str, max_results: int = 2) -> tuple[list, str]:
-    """
-    Recherche progressive en 4 passes :
-    1. Variantes normalisées + abréviations expansées, mode simple, langue fr
-    2. Même chose, worldwide
-    3. Via fr.openfoodfacts.org (sous-domaine)
-    4. Mode fuzzy (search_simple=0) sur les variantes principales — tolère les fautes/noms partiels
-    """
-    variants = build_query_variants(raw_query)
-
-    for variant in variants:
-        logger.info(f"[OFF pass 1 - fr] '{variant}'")
-        results = search_products(variant, max_results, worldwide=False)
-        if results:
-            return results, variant
-
-    for variant in variants:
-        logger.info(f"[OFF pass 2 - worldwide] '{variant}'")
-        results = search_products(variant, max_results, worldwide=True)
-        if results:
-            return results, variant
-
-    for variant in variants:
-        try:
-            logger.info(f"[OFF pass 3 - fr subdomain] '{variant}'")
-            r = requests.get(
-                "https://fr.openfoodfacts.org/cgi/search.pl",
-                params={
-                    "search_terms": variant,
-                    "search_simple": 1,
-                    "action": "process",
-                    "json": 1,
-                    "page_size": max_results,
-                    "fields": "product_name,brands,nutriscore_grade,nova_group,nutriments,additives_tags,quantity,labels_tags,ingredients_text",
-                },
-                headers=OFF_HEADERS,
-                timeout=10,
-            )
-            r.raise_for_status()
-            products = [p for p in r.json().get("products", []) if p.get("product_name")]
-            if products:
-                return products[:max_results], variant
-        except Exception as e:
-            logger.error(f"OFF pass 3 error: {e}")
-
-    for variant in variants[:4]:
-        logger.info(f"[OFF pass 4 - fuzzy worldwide] '{variant}'")
-        results = search_products(variant, max_results, worldwide=True, fuzzy=True)
-        if results:
-            return results, f"{variant} (fuzzy)"
-
-    return [], raw_query
 
 
 def format_product(product: dict) -> str:
@@ -385,58 +213,6 @@ def format_product(product: dict) -> str:
         f"Additifs : {additives_str}\n"
         f"Ingrédients : {ingredients}"
     )
-
-MEAL_KEYWORDS = [
-    r"\bje mange\b", r"\bj.ai mangé\b", r"\bje vais manger\b",
-    r"\brepas\b", r"\bassiette\b", r"\bcombien de calorie", r"\bcalories?\b",
-    r"\bplat\b", r"\bdîner\b", r"\bdéjeuner\b", r"\bpetit.déj", r"\bsnack\b",
-]
-
-MEAL_INGREDIENT_STOPWORDS = {
-    "je", "vais", "mange", "un", "une", "des", "du", "de", "la", "le", "les",
-    "avec", "et", "ou", "plus", "aussi", "combien", "calorie", "calories",
-    "kcal", "etc", "gros", "gros", "énorme", "petit", "grand", "plein",
-    "complet", "complète", "bon", "bonne", "mange", "manger", "repas",
-    "assiette", "vraiment", "beaucoup", "environ", "cela", "tout",
-}
-
-def is_meal_query(text: str) -> bool:
-    text_lower = text.lower()
-    return any(re.search(kw, text_lower) for kw in MEAL_KEYWORDS)
-
-
-def extract_meal_ingredients(text: str) -> list[str]:
-    """
-    Extrait les ingrédients clés d'une question libre sur un repas.
-    Ex : "couscous complet merguez yaourt" → ["couscous", "merguez", "yaourt"]
-    """
-    cleaned = re.sub(r"[^\w\s]", " ", text.lower())
-    words = cleaned.split()
-    ingredients = [w for w in words if len(w) > 3 and w not in MEAL_INGREDIENT_STOPWORDS]
-    
-    seen = []
-    for w in ingredients:
-        if w not in seen:
-            seen.append(w)
-    return seen[:6]
-
-
-def get_off_context_meal(text: str) -> str:
-    """
-    Pour les questions de repas libres : cherche chaque ingrédient
-    séparément sur OFF et construit un contexte multi-produits.
-    """
-    ingredients = extract_meal_ingredients(text)
-    if not ingredients:
-        return ""
-
-    parts = []
-    for ingredient in ingredients:
-        products = search_products(ingredient, max_results=1)
-        if products:
-            parts.append(f"=== {ingredient.upper()} ===\n{format_product(products[0])}")
-
-    return "\n\n".join(parts) if parts else ""
 
 
 def get_off_context_single(query: str) -> str:
@@ -533,7 +309,7 @@ async def nutri_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     raw_query = " ".join(context.args)
     await update.message.chat.send_action("typing")
 
-    products, used_variant = smart_search(raw_query)
+    products = search_products(raw_query)
 
     if not products:
         await update.message.reply_text(
@@ -546,12 +322,8 @@ async def nutri_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     parts = [format_product(p) for p in products if p.get("product_name")]
     off_context = "\n---\n".join(parts)
 
-    header = f"📦 *Résultats pour « {raw_query} »*"
-    if used_variant != normalize_query(raw_query):
-        header += f"\n_Recherche effectuée avec : « {used_variant} »_"
-
     await update.message.reply_text(
-        f"{header}\n\n```\n{off_context}\n```",
+        f"📦 *Résultats pour « {raw_query} »*\n\n```\n{off_context}\n```",
         parse_mode="Markdown",
     )
 
@@ -610,27 +382,16 @@ async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await update.message.chat.send_action("typing")
 
-    market = extract_supermarket(user_message)
-    market_info = f" (contexte : {market})" if market else ""
-
-    raw_cards = ""  
-
     if is_comparison_query(user_message):
         products = extract_products_from_message(user_message)
-        logger.info(f"Comparaison détectée{market_info}. Produits extraits : {products}")
+        logger.info(f"Comparaison détectée. Produits extraits : {products}")
 
         if len(products) >= 2:
             off_context = get_off_context_comparison(products[0], products[1])
         else:
             off_context = get_off_context_single(user_message[:80])
-
-    elif is_meal_query(user_message):
-        logger.info(f"Question repas/calories détectée{market_info}.")
-        off_context = get_off_context_meal(user_message)
-        raw_cards = off_context  
-
     else:
-        logger.info(f"Analyse simple détectée{market_info}.")
+        logger.info("Analyse simple détectée.")
         off_context = get_off_context_single(user_message[:80])
 
     reply = ask_lmstudio(user_message, history, off_context)
@@ -649,41 +410,6 @@ async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await update.message.reply_text(reply, parse_mode="Markdown")
 
-    
-    if raw_cards:
-        await update.message.reply_text(
-            f"📋 *Fiches nutritionnelles des ingrédients détectés :*\n\n```\n{raw_cards}\n```",
-            parse_mode="Markdown",
-        )
-
-
-async def testapi_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """
-    /testapi — diagnostique la connexion à Open Food Facts.
-    Teste 3 requêtes de référence et affiche les résultats.
-    """
-    await update.message.chat.send_action("typing")
-    tests = [
-        ("danone", False),
-        ("nutella", False),
-        ("gerble", True),
-    ]
-    lines = ["🔧 *Diagnostic Open Food Facts*\n"]
-    for term, worldwide in tests:
-        try:
-            results = search_products(term, max_results=1, worldwide=worldwide)
-            mode = "worldwide" if worldwide else "fr"
-            if results:
-                name = results[0].get("product_name", "?")[:40]
-                lines.append(f"✅ `{term}` ({mode}) → {name}")
-            else:
-                lines.append(f"❌ `{term}` ({mode}) → aucun résultat")
-        except Exception as e:
-            lines.append(f"💥 `{term}` → erreur : {e}")
-
-    lines.append("\n_Si tous les tests échouent, vérifiez votre connexion internet._")
-    await update.message.reply_text("\n".join(lines), parse_mode="Markdown")
-
 
 def main():
     logger.info("🚀 Démarrage NutriBot...")
@@ -698,7 +424,6 @@ def main():
     application.add_handler(CommandHandler("reset",    reset))
     application.add_handler(CommandHandler("nutri",    nutri_cmd))
     application.add_handler(CommandHandler("comparer", comparer_cmd))
-    application.add_handler(CommandHandler("testapi",  testapi_cmd))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, chat))
 
     logger.info("✅ NutriBot prêt ! En attente de messages...")

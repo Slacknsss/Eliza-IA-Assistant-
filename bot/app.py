@@ -18,7 +18,7 @@ CORS(app)
 logging.basicConfig(format="%(asctime)s | %(levelname)s | %(message)s", level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# ─── Copié depuis bot.py ───────────────────────────────────────────────────────
+
 
 SYSTEM_PROMPT = """Tu es EpiHealthyBot, un expert en nutrition et analyse de produits alimentaires pour la grande distribution française (Super U, Carrefour, Lidl, Leclerc, Intermarché, Aldi, Monoprix, Casino, etc.).
 
