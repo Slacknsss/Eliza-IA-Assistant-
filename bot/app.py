@@ -1,7 +1,7 @@
 import re
 import logging
 import requests
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import os
 from dotenv import load_dotenv
@@ -213,6 +213,11 @@ def landing():
     html_path = os.path.join(os.path.dirname(__file__), "../site/landing.html")
     with open(html_path, "r", encoding="utf-8") as f:
         return f.read(), 200, {"Content-Type": "text/html"}
+
+@app.route("/demo.mp4", methods=["GET"])
+def serve_video():
+    site_dir = os.path.join(os.path.dirname(__file__), "../site")
+    return send_from_directory(os.path.abspath(site_dir), "demo.mp4")
 
 if __name__ == "__main__":
     logger.info("🚀 EpiHealthyBot API démarrée sur http://localhost:8080")
