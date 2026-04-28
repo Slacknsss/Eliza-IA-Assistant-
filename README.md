@@ -97,6 +97,7 @@ python app.py
 ---
 
 ## 📁 Project Structure
+```
 ├── bot/
 │   ├── app.py           # API Flask + interface web
 │   ├── bot.py           # Bot Telegram
@@ -106,6 +107,7 @@ python app.py
 │   └── landing.html     # Page de présentation du projet
 └── bootstrap/
     └── bruno/           # Analyse de la chaîne de valeur
+```
 
 ## 📊 Data Source
 
