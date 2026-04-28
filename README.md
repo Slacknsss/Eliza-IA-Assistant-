@@ -1,100 +1,122 @@
-# B-AIA-210-PAR-2-1-eliza-6 — NutriBot
+# 🥗 NutriBot — AI Nutrition Assistant
 
-NutriBot est un assistant nutrition IA pour la grande distribution française.  
-Il analyse des produits alimentaires via Open Food Facts et répond aux questions nutritionnelles via un LLM local (LMStudio).
+**Epitech Paris — B-AIA-210 Module Project**
 
-Trois interfaces sont disponibles :
-- Un **bot Telegram** (`bot.py`)
-- Une **interface web** avec une API Flask (`app.py` + `site/index_1.html`)
-- Une **page de présentation** accessible sur `/landing` (`site/landing.html`)
+## 🎯 What is NutriBot?
+
+NutriBot is an AI-powered nutrition assistant built for the 
+French mass retail market. It analyzes food products using 
+the Open Food Facts database and answers nutritional questions 
+through a local LLM (LMStudio).
+
+Three interfaces are available:
+- 🤖 **Telegram Bot** — conversational assistant via Telegram
+- 🌐 **Web Interface** — chat UI served by a Flask API
+- 🏠 **Landing Page** — project presentation page
 
 ---
 
-## Prérequis
+## 🛠️ Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Language | Python 3.10+ |
+| LLM | LMStudio (local, port 1234) |
+| Food Data | Open Food Facts API |
+| Bot | python-telegram-bot |
+| Backend | Flask |
+| Frontend | HTML / CSS / JS |
+
+---
+
+## ⚙️ Prerequisites
 
 - Python 3.10+
-- [LMStudio](https://lmstudio.ai/) avec un modèle chargé et le serveur local démarré (port 1234)
-- Un bot Telegram créé via [@BotFather](https://t.me/BotFather)
+- [LMStudio](https://lmstudio.ai/) with a model loaded 
+  and local server running on port 1234
+- A Telegram bot created via [@BotFather](https://t.me/BotFather)
 
 ---
 
-## Installation
+## 🚀 Installation
 
 ```bash
-git clone git@github.com:EpitechBachelorPromo2028/B-AIA-210-PAR-2-1-eliza-6.git
-cd B-AIA-210-PAR-2-1-eliza-6/bot
+git clone git@github.com:Slacknsss/NutriBot-AI-Nutrition-Assistant.git
+cd NutriBot-AI-Nutrition-Assistant/bot
 pip install -r requirements.txt
 ```
 
-Créer un fichier `.env` dans `bot/` :
+Create a `.env` file inside `bot/`:
 
 ```env
-TELEGRAM_TOKEN=ton_token_telegram
+TELEGRAM_TOKEN=your_telegram_token
 LMSTUDIO_URL=http://127.0.0.1:1234/v1
 OFF_BASE_URL=https://world.openfoodfacts.org
 ```
 
 ---
 
-## Lancement
+## ▶️ Running the app
 
-**Bot Telegram :**
+**Telegram Bot:**
 ```bash
 python bot.py
 ```
 
-**Interface web (API Flask) :**
+**Web Interface (Flask API):**
 ```bash
 python app.py
 ```
-Accessible sur `http://localhost:8080`  
-Page de présentation : `http://localhost:8080/landing`
+
+- Chat UI: `http://localhost:8080`
+- Landing page: `http://localhost:8080/landing`
 
 ---
 
-## Fonctionnalités
+## ✨ Features
 
-- Analyse nutritionnelle d'un produit (Nutri-Score, NOVA, additifs, macros)
-- Comparaison de deux produits
-- Estimation calorique d'un repas (bot Telegram)
-- Recherche intelligente sur Open Food Facts (variantes, abréviations, fuzzy search)
-- Historique de conversation par session
+- 🔍 **Nutritional analysis** — Nutri-Score, NOVA group, 
+  additives, macros
+- ⚖️ **Product comparison** — side-by-side nutritional breakdown
+- 🍽️ **Meal calorie estimation** (Telegram)
+- 🧠 **Smart search** — fuzzy matching, abbreviations, 
+  product variants on Open Food Facts
+- 💬 **Conversation history** per session
 
-**Commandes Telegram disponibles :**
+**Telegram commands:**
 
-| Commande | Description |
+| Command | Description |
 |---|---|
-| `/start` | Démarrer le bot |
-| `/nutri <produit>` | Fiche nutritionnelle |
-| `/comparer <A> vs <B>` | Comparer deux produits |
-| `/reset` | Réinitialiser la conversation |
-| `/ping` | Tester la connexion |
-| `/testapi` | Diagnostic Open Food Facts |
+| `/start` | Start the bot |
+| `/nutri <product>` | Get nutritional info |
+| `/comparer <A> vs <B>` | Compare two products |
+| `/reset` | Reset conversation |
+| `/ping` | Test connection |
+| `/testapi` | Diagnose Open Food Facts API |
 
 ---
 
-## Structure du projet
-
-```
+## 📁 Project Structure
 ├── bot/
-│   ├── app.py           # API Flask + interface web
-│   ├── bot.py           # Bot Telegram
+│   ├── app.py           # Flask API + web interface
+│   ├── bot.py           # Telegram bot
 │   └── requirements.txt
 ├── site/
-│   ├── index_1.html     # Frontend web (chat)
-│   └── landing.html     # Page de présentation du projet
+│   ├── index_1.html     # Web chat frontend
+│   └── landing.html     # Project landing page
 └── bootstrap/
-    └── bruno/           # Analyse de la chaîne de valeur
-```
+└── bruno/           # Value chain analysis
+---
+
+## 📊 Data Source
+
+Nutritional data is sourced from 
+[Open Food Facts](https://world.openfoodfacts.org) — 
+an open and collaborative food database.
 
 ---
 
-## Données
+## 👤 Author
 
-Les données nutritionnelles proviennent de [Open Food Facts](https://world.openfoodfacts.org), base de données ouverte et collaborative.
-
----
-
-## Licence
-
-Projet réalisé dans le cadre du module B-AIA-210 — Epitech Paris.
+**Simon Slack** — Epitech Paris (Class of 2028)  
+[github.com/Slacknsss](https://github.com/Slacknsss)
