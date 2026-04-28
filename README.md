@@ -98,15 +98,14 @@ python app.py
 
 ## 📁 Project Structure
 ├── bot/
-│   ├── app.py           # Flask API + web interface
-│   ├── bot.py           # Telegram bot
+│   ├── app.py           # API Flask + interface web
+│   ├── bot.py           # Bot Telegram
 │   └── requirements.txt
 ├── site/
-│   ├── index_1.html     # Web chat frontend
-│   └── landing.html     # Project landing page
+│   ├── index_1.html     # Frontend web (chat)
+│   └── landing.html     # Page de présentation du projet
 └── bootstrap/
-└── bruno/           # Value chain analysis
----
+    └── bruno/           # Analyse de la chaîne de valeur
 
 ## 📊 Data Source
 
