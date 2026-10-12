@@ -193,15 +193,6 @@
       font-weight: 700;
     }
 
-    .badge {
-      background: var(--blue);
-      color: #fff;
-      font-size: 0.7rem;
-      font-weight: 600;
-      padding: 3px 8px;
-      border-radius: 20px;
-    }
-
     .pricing-price {
       font-size: 1.8rem;
       font-weight: 700;
@@ -233,35 +224,6 @@
     }
 
  
-    .reviews-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 20px;
-    }
-
-    .review-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 24px;
-    }
-
-    .review-author {
-      font-size: 0.875rem;
-      font-weight: 600;
-      margin-bottom: 4px;
-    }
-
-    .review-stars {
-      color: #facc15;
-      font-size: 0.8rem;
-      margin-bottom: 12px;
-    }
-
-    .review-text {
-      font-size: 0.875rem;
-      color: var(--muted);
-    }
 
 
     footer {
@@ -280,8 +242,7 @@
 
     /* RESPONSIVE */
     @media (max-width: 700px) {
-      .features-grid,
-      .reviews-grid { grid-template-columns: 1fr; }
+      .features-grid { grid-template-columns: 1fr; }
       .pricing-grid { grid-template-columns: 1fr; }
       .hero h1 { font-size: 2rem; }
       nav { padding: 0 20px; }
@@ -358,7 +319,6 @@
       <div class="pricing-card featured">
         <div class="pricing-header">
           <h3>Premium</h3>
-          <span class="badge">Populaire</span>
         </div>
         <div class="pricing-price">3 € <span>/ mois</span></div>
         <ul class="pricing-features">
@@ -371,31 +331,10 @@
     </div>
   </section>
 
- 
-  <section>
-    <div class="section-title fade">Ce que disent nos utilisateurs</div>
-    <div class="reviews-grid">
-      <div class="review-card fade">
-        <div class="review-author">Marie L.</div>
-        <div class="review-stars">★★★★★</div>
-        <div class="review-text">"Incroyable, j'analyse tous mes produits au supermarche !"</div>
-      </div>
-      <div class="review-card fade">
-        <div class="review-author">Thomas R.</div>
-        <div class="review-stars">★★★★★</div>
-        <div class="review-text">"Le premium vaut vraiment 3 euros, je l'utilise tous les jours."</div>
-      </div>
-      <div class="review-card fade">
-        <div class="review-author">Sophie M.</div>
-        <div class="review-stars">★★★★★</div>
-        <div class="review-text">"Enfin un outil nutrition simple et honnete."</div>
-      </div>
-    </div>
-  </section>
 
 
   <footer>
-    EpiHealthyBot — Epitech Paris 2026 &nbsp;|&nbsp;
+    EpiHealthyBot, Epitech Paris 2026 &nbsp;|&nbsp;
     <a href="http://localhost:8080" target="_blank">Ouvrir l'application</a>
   </footer>
 
